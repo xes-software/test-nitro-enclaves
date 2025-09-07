@@ -1,0 +1,17 @@
+[package]
+name = "enclave"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+byteorder = "1.5.0"
+nix = {version = "0.30.1", features = ["socket"]}
+serde_bytes = "0.11"
+
+[dependencies.nsm-driver]
+git = "https://github.com/aws/aws-nitro-enclaves-nsm-api.git"
+rev = "4f468c4"
+
+[dependencies.nsm-io]
+git = "https://github.com/aws/aws-nitro-enclaves-nsm-api.git"
+rev = "4f468c4"
