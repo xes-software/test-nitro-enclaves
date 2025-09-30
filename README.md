@@ -28,6 +28,12 @@ git clone https://github.com/xes-software/test-nitro-enclaves.git
 curl -fsSL https://deno.land/install.sh | sh
 ```
 
+# Start docker
+
+```bash
+sudo systemctl enable --now docker
+```
+
 # Build docker image
 
 ```bash
