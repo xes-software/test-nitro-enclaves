@@ -31,7 +31,7 @@ curl -fsSL https://deno.land/install.sh | sh
 # Set the allocator and start nitro enclaves allocator
 
 ```bash
-sudo cp ./test-nitro-enclaves/allocator.yml /etc/nitro_enclaves/allocator.yaml
+sudo cp ./test-nitro-enclaves/allocator.yml /etc/nitro_enclaves/allocator.yml
 sudo systemctl enable --now nitro-enclaves-allocator.service
 ```
 
