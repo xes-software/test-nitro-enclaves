@@ -28,11 +28,22 @@ git clone https://github.com/xes-software/test-nitro-enclaves.git
 curl -fsSL https://deno.land/install.sh | sh
 ```
 
+# Set the allocator and start nitro enclaves allocator
+
+```bash
+sudo cp ./test-nitro-enclaves/allocator.yml /etc/nitro_enclaves/allocator.yaml
+sudo systemctl enable --now nitro-enclaves-allocator.service
+```
+
 # Start docker
 
 ```bash
 sudo systemctl enable --now docker
 ```
+
+# Exit Terminal
+
+Close the instance and start again.
 
 # Build docker image
 
