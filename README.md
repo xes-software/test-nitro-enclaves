@@ -31,7 +31,12 @@ curl -fsSL https://deno.land/install.sh | sh
 # Set the allocator and start nitro enclaves allocator
 
 ```bash
-sudo cp ./test-nitro-enclaves/allocator.yaml /etc/nitro_enclaves/allocator.yaml
+sudo vim /etc/nitro_enclaves/allocator.yaml
+```
+
+In configuration file, update `memory_mib: 5000`, and `cpu_count: 2`
+
+```bash
 sudo systemctl enable --now nitro-enclaves-allocator.service
 ```
 
