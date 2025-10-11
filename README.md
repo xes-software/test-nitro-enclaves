@@ -50,6 +50,13 @@ sudo systemctl enable --now docker
 
 Close the instance and start again.
 
+# Build KMS Tool Enclave CLI
+
+```bash
+cd bin/kmstool-enclave-cli
+./build.sh
+```
+
 # Build docker image
 
 ```bash
