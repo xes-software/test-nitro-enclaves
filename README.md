@@ -53,7 +53,9 @@ Close the instance and start again.
 # Build KMS Tool Enclave CLI
 
 ```bash
-./test-nitro-enclaves/aws-nitro-enclaves-sdk-c/bin/kmstool-enclave-cli/build.sh
+cd test-nitro-enclaves/aws-nitro-enclaves-sdk-c/bin/kmstool-enclave-cli/
+./build.sh
+cd ~/
 ```
 
 # Build docker image
