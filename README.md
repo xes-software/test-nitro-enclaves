@@ -19,7 +19,7 @@ sudo usermod -aG docker ec2-user
 
 ```bash
 sudo dnf install -y git
-git clone https://github.com/xes-software/test-nitro-enclaves.git
+git clone --recurse-submodules https://github.com/xes-software/test-nitro-enclaves.git
 ```
 
 # Install deno
@@ -53,8 +53,7 @@ Close the instance and start again.
 # Build KMS Tool Enclave CLI
 
 ```bash
-cd bin/kmstool-enclave-cli
-./build.sh
+./test-nitro-enclaves/aws-nitro-enclaves-sdk-c/bin/kmstool-enclave-cli/build.sh
 ```
 
 # Build docker image
