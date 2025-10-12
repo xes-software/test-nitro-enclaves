@@ -1,3 +1,19 @@
+import {
+  STSClient,
+  AssumeRoleCommand,
+  GetCallerIdentityCommand,
+} from "npm:@aws-sdk/client-sts@3.908.0";
+
+const stsClient = new STSClient({});
+const identityCommand = new GetCallerIdentityCommand({});
+const identity = await stsClient.send(identityCommand);
+const roleCommand = new AssumeRoleCommand({
+  RoleArn: identity.Arn,
+  RoleSessionName: "TestSession",
+});
+const role = await stsClient.send(roleCommand);
+console.log("Role:", role);
+
 const client = Deno.createHttpClient({
   proxy: {
     transport: "vsock",
