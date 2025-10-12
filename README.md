@@ -40,6 +40,13 @@ In configuration file, update `memory_mib: 5000`, and `cpu_count: 1`
 sudo systemctl enable --now nitro-enclaves-allocator.service
 ```
 
+# Start the vsock proxy for KMS communication
+
+```bash
+sudo systemctl start nitro-enclaves-vsock-proxy.service
+sudo systemctl enable nitro-enclaves-vsock-proxy.service
+```
+
 # Start docker
 
 ```bash

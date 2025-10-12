@@ -5,15 +5,13 @@ try {
 
     const command = new Deno.Command("kmstool_enclave_cli", {
       args: [
-        "decrypt",
+        "genrandom",
         "--region",
         "us-east-1",
         "--proxy-port",
         "8000",
-        "--aws-access-key-id",
-        "AKIA...",
-        "--aws-secret-access-key",
-        "SECRET...",
+        "--length",
+        "32",
       ],
     });
 
