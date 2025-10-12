@@ -4,7 +4,7 @@ import {
   GetCallerIdentityCommand,
 } from "npm:@aws-sdk/client-sts@3.908.0";
 
-const stsClient = new STSClient({});
+const stsClient = new STSClient({ region: "us-east-1" });
 const identityCommand = new GetCallerIdentityCommand({});
 const identity = await stsClient.send(identityCommand);
 const roleCommand = new AssumeRoleCommand({
