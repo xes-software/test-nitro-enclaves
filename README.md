@@ -11,8 +11,8 @@ cd ~
 ```bash
 sudo dnf install aws-nitro-enclaves-cli -y
 sudo dnf install aws-nitro-enclaves-cli-devel -y
-sudo usermod -aG ne ec2-user
-sudo usermod -aG docker ec2-user
+sudo usermod -aG ne ssm-user
+sudo usermod -aG docker ssm-user
 ```
 
 # Install git
@@ -86,5 +86,5 @@ nitro-cli run-enclave --cpu-count 1 --memory 5000 --enclave-cid 16 --eif-path en
 # Start server to talk to enclave
 
 ```bash
-deno run -A ./test-nitro-enclaves/client.ts
+/home/ssm-user/.deno/bin/deno run -A ./test-nitro-enclaves/client.ts
 ```

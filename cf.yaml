@@ -1,0 +1,220 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: EC2 instance with Nitro Enclaves and a KMS key restricted by attestation.
+
+Parameters:
+  RoleName:
+    Type: String
+    Default: EC2NitroRole
+    Description: Name for the IAM role
+
+Resources:
+  # IAM Role with self-assumption capability
+  EC2NitroRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref RoleName
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          # Allow EC2 service to assume this role
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+          # Allow the role to assume itself (self-assumption)
+          - Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                "aws:PrincipalArn": !Sub "arn:aws:iam::${AWS::AccountId}:role/${RoleName}"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Policies:
+        # Inline policy allowing self-assumption
+        - PolicyName: SelfAssumeRolePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: sts:AssumeRole
+                Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/${RoleName}"
+        # Additional permissions for Nitro Enclaves (example)
+        - PolicyName: NitroEnclavePermissions
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - kms:GenerateRandom
+                  - kms:Decrypt
+                  - kms:DescribeKey
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource: "*"
+
+  # Instance Profile for EC2
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub "${RoleName}-InstanceProfile"
+      Roles:
+        - !Ref EC2NitroRole
+
+  NitroEnclaveVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: "true"
+      EnableDnsHostnames: "true"
+
+  DefaultVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: DefaultVPC
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: DefaultIGW
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref DefaultVPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref DefaultVPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: PublicSubnet
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref DefaultVPC
+      Tags:
+        - Key: Name
+          Value: PublicRouteTable
+
+  DefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+
+  AllowAllSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow all inbound and outbound traffic
+      VpcId: !Ref DefaultVPC
+      SecurityGroupIngress:
+        - IpProtocol: -1
+          FromPort: 0
+          ToPort: 65535
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: 0
+          ToPort: 65535
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: AllowAllSecurityGroup
+
+  ### KMS Key ###
+  EnclaveKMSKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: "KMS key accessible only to enclaves with a specific attestation image SHA384."
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          # Allow root account full control
+          - Sid: AllowRootAccount
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: "kms:*"
+            Resource: "*"
+
+          # Allow EC2 Role to call GenerateRandom
+          - Sid: AllowEnclaveGenerateRandom
+            Effect: Allow
+            Principal:
+              AWS: !GetAtt EC2NitroRole.Arn
+            Action: "kms:GenerateRandom"
+            Resource: "*"
+            Condition:
+              StringEqualsIgnoreCase:
+                "kms:RecipientAttestation:ImageSha384": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+
+  ### EC2 Instance with Nitro Enclaves ###
+  EnclaveInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: m7g.large
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      ImageId: ami-0858e76ce571eb464 # ARM Linux 2023
+      EnclaveOptions:
+        Enabled: true
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeviceIndex: 0
+          SubnetId: !Ref PublicSubnet
+          GroupSet:
+            - !Ref AllowAllSecurityGroup
+      Tags:
+        - Key: Name
+          Value: NitroEnclaveInstance
+
+Outputs:
+  InstanceId:
+    Value: !Ref EnclaveInstance
+    Description: ID of the EC2 instance with Nitro Enclaves enabled
+
+  KMSKeyArn:
+    Value: !Ref EnclaveKMSKey
+    Description: ARN of the KMS key restricted by attestation
+
+  RoleArn:
+    Description: ARN of the created IAM role
+    Value: !GetAtt EC2NitroRole.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-RoleArn"
+
+  InstanceProfileArn:
+    Description: ARN of the instance profile
+    Value: !GetAtt EC2InstanceProfile.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-InstanceProfileArn"
+
+  RoleName:
+    Description: Name of the created IAM role
+    Value: !Ref EC2NitroRole
+    Export:
+      Name: !Sub "${AWS::StackName}-RoleName"
