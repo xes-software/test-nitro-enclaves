@@ -20,6 +20,9 @@ const roleCommand = new AssumeRoleCommand({
 });
 const role = await stsClient.send(roleCommand);
 console.log("Role:", role);
+const accesKeyId = role.Credentials!.AccessKeyId!;
+const sessionToken = role.Credentials!.SessionToken!;
+const secretAccessKey = role.Credentials!.SecretAccessKey!;
 
 const client = Deno.createHttpClient({
   proxy: {
@@ -31,7 +34,7 @@ const client = Deno.createHttpClient({
 
 const result = await fetch("http://vsock/stuff", {
   client,
-  body: JSON.stringify({ hello: "hello" }),
+  body: JSON.stringify({ accesKeyId, sessionToken, secretAccessKey }),
   method: "POST",
 });
 
