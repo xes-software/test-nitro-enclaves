@@ -7,8 +7,15 @@ import {
 const stsClient = new STSClient({ region: "us-east-1" });
 const identityCommand = new GetCallerIdentityCommand({});
 const identity = await stsClient.send(identityCommand);
+
+const arnParts = identity.Arn!.split("/");
+const roleName = arnParts[1];
+const accountId = identity.Account;
+
+const roleArn = `arn:aws:iam::${accountId}:role/${roleName}`;
+
 const roleCommand = new AssumeRoleCommand({
-  RoleArn: identity.Arn,
+  RoleArn: roleArn,
   RoleSessionName: "TestSession",
 });
 const role = await stsClient.send(roleCommand);

@@ -1,45 +1,37 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: EC2 instance with Nitro Enclaves and a KMS key restricted by attestation.
 
-Parameters:
-  RoleName:
-    Type: String
-    Default: EC2NitroRole
-    Description: Name for the IAM role
-
 Resources:
-  # IAM Role with self-assumption capability
   EC2NitroRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Ref RoleName
+      RoleName: !Sub "${AWS::StackName}-EC2-NitroRole"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
-          # Allow EC2 service to assume this role
           - Effect: Allow
             Principal:
               Service: ec2.amazonaws.com
             Action: sts:AssumeRole
-          # Allow the role to assume itself (self-assumption)
+
+          # Allow account root with condition for self-assumption
           - Effect: Allow
             Principal:
               AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
             Action: sts:AssumeRole
             Condition:
               StringEquals:
-                "aws:PrincipalArn": !Sub "arn:aws:iam::${AWS::AccountId}:role/${RoleName}"
+                "aws:PrincipalArn": !Sub "arn:aws:iam::${AWS::AccountId}:role/${AWS::StackName}-EC2-NitroRole"
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
       Policies:
-        # Inline policy allowing self-assumption
         - PolicyName: SelfAssumeRolePolicy
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action: sts:AssumeRole
-                Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/${RoleName}"
+                Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/${AWS::StackName}-EC2-NitroRole"
         # Additional permissions for Nitro Enclaves (example)
         - PolicyName: NitroEnclavePermissions
           PolicyDocument:
@@ -60,7 +52,7 @@ Resources:
   EC2InstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
-      InstanceProfileName: !Sub "${RoleName}-InstanceProfile"
+      InstanceProfileName: !Sub "${AWS::StackName}-EC2-InstanceProfile"
       Roles:
         - !Ref EC2NitroRole
 
@@ -191,30 +183,3 @@ Resources:
       Tags:
         - Key: Name
           Value: NitroEnclaveInstance
-
-Outputs:
-  InstanceId:
-    Value: !Ref EnclaveInstance
-    Description: ID of the EC2 instance with Nitro Enclaves enabled
-
-  KMSKeyArn:
-    Value: !Ref EnclaveKMSKey
-    Description: ARN of the KMS key restricted by attestation
-
-  RoleArn:
-    Description: ARN of the created IAM role
-    Value: !GetAtt EC2NitroRole.Arn
-    Export:
-      Name: !Sub "${AWS::StackName}-RoleArn"
-
-  InstanceProfileArn:
-    Description: ARN of the instance profile
-    Value: !GetAtt EC2InstanceProfile.Arn
-    Export:
-      Name: !Sub "${AWS::StackName}-InstanceProfileArn"
-
-  RoleName:
-    Description: Name of the created IAM role
-    Value: !Ref EC2NitroRole
-    Export:
-      Name: !Sub "${AWS::StackName}-RoleName"
