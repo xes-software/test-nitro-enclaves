@@ -86,10 +86,10 @@ try {
         cipherText,
         "--proxy-port",
         "8000",
-        "--key-id",
-        "164ea6b3-0d6f-4386-9529-ffa1a978176c",
-        "--encryption-algorithm",
-        "AES-256",
+        // "--key-id",
+        // "164ea6b3-0d6f-4386-9529-ffa1a978176c",
+        // "--encryption-algorithm",
+        // "AES-256",
       ],
     });
     const {
