@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "enclave",
+    "host"
+]
+resolver = "3"
