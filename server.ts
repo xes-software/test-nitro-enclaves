@@ -47,26 +47,6 @@ try {
       ],
     });
 
-    const decryptDataKeyCommand = new Deno.Command("kmstool_enclave_cli", {
-      args: [
-        "decrypt",
-        "--region",
-        "us-east-1",
-        "--aws-access-key-id",
-        accessKeyId,
-        "--aws-secret-access-key",
-        secretAccessKey,
-        "--aws-session-token",
-        sessionToken,
-        "--proxy-port",
-        "8000",
-        "--key-id",
-        "164ea6b3-0d6f-4386-9529-ffa1a978176c",
-        "--encryption-algorithm",
-        "AES-256",
-      ],
-    });
-
     const { code, stdout, stderr } = await command.output();
     console.log("Exit code:", code);
     const output = new TextDecoder().decode(stdout);
@@ -89,7 +69,29 @@ try {
     const [genCipher, genPlaintext] = genOutput.split("\n");
     console.log("GEN Cipher:", genCipher);
     console.log("GEN Plaintext:", genPlaintext);
+    const cipherText = genCipher.split(":")[1].trim();
 
+    const decryptDataKeyCommand = new Deno.Command("kmstool_enclave_cli", {
+      args: [
+        "decrypt",
+        "--region",
+        "us-east-1",
+        "--aws-access-key-id",
+        accessKeyId,
+        "--aws-secret-access-key",
+        secretAccessKey,
+        "--aws-session-token",
+        sessionToken,
+        "--ciphertext",
+        cipherText,
+        "--proxy-port",
+        "8000",
+        "--key-id",
+        "164ea6b3-0d6f-4386-9529-ffa1a978176c",
+        "--encryption-algorithm",
+        "AES-256",
+      ],
+    });
     const {
       code: decryptCode,
       stdout: decryptStdout,

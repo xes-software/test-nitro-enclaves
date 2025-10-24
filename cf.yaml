@@ -42,6 +42,7 @@ Resources:
                   - kms:GenerateRandom
                   - kms:Decrypt
                   - kms:Encrypt
+                  - kms:GenerateDataKey
                   - kms:DescribeKey
                 Resource: "*"
               - Effect: Allow
