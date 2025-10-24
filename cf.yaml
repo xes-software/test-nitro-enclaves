@@ -41,6 +41,7 @@ Resources:
                 Action:
                   - kms:GenerateRandom
                   - kms:Decrypt
+                  - kms:Encrypt
                   - kms:DescribeKey
                 Resource: "*"
               - Effect: Allow
@@ -155,11 +156,16 @@ Resources:
             Resource: "*"
 
           # Allow EC2 Role to call GenerateRandom
-          - Sid: AllowEnclaveGenerateRandom
+          - Sid: AllowEnclaveOperations
             Effect: Allow
             Principal:
               AWS: !GetAtt EC2NitroRole.Arn
-            Action: "kms:GenerateRandom"
+            Action:
+              - "kms:GenerateRandom"
+              - "kms:DescribeKey"
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
             Resource: "*"
             Condition:
               StringEqualsIgnoreCase:
