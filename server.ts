@@ -1,3 +1,7 @@
+import * as Crypto from "npm:@cardano-sdk/crypto@0.4.4";
+
+await Crypto.ready();
+
 try {
   Deno.serve({ transport: "vsock", cid: -1, port: 3000 }, async (req, info) => {
     console.log("Logging cid:", info.remoteAddr.cid);
@@ -50,11 +54,22 @@ try {
     const { code, stdout, stderr } = await command.output();
     console.log("Exit code:", code);
     const output = new TextDecoder().decode(stdout);
-    const randomBytes = output.split(":")[1];
+    const randomBytes = output.split(":")[1].trim();
+    const randomBytesArray = Uint8Array.fromBase64(randomBytes);
+
     console.log("Logging output:", output);
     console.log(`Logging randomBytes:[${randomBytes}]`);
     console.log("STDOUT:", new TextDecoder().decode(stdout));
     console.log("STDERR:", new TextDecoder().decode(stderr));
+
+    const privateKey =
+      Crypto.Ed25519PrivateKey.fromNormalBytes(randomBytesArray);
+    console.log("Private Key after conversion:", privateKey.bytes().toBase64());
+    console.log("Private Key before conversion:", randomBytes);
+
+    const publicKey = privateKey.toPublic();
+    console.log("Public key hash hex:", publicKey.hash().hex());
+    console.log("Public key .hex():", publicKey.hex());
 
     const {
       code: genCode,
@@ -86,10 +101,6 @@ try {
         cipherText,
         "--proxy-port",
         "8000",
-        // "--key-id",
-        // "164ea6b3-0d6f-4386-9529-ffa1a978176c",
-        // "--encryption-algorithm",
-        // "AES-256",
       ],
     });
     const {
