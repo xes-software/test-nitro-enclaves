@@ -1,6 +1,0 @@
-{
-  "imports": {
-    "@cardano-sdk/crypto": "npm:@cardano-sdk/crypto@0.4.4"
-  },
-  "nodeModulesDir": "auto"
-}

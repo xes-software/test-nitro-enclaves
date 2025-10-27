@@ -1,4 +1,4 @@
-import { Ed25519PrivateKey, ready } from "@cardano-sdk/crypto";
+import { Ed25519PrivateKey, ready } from "npm:@cardano-sdk/crypto@0.4.4";
 
 try {
   await ready();
