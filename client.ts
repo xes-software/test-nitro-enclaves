@@ -34,7 +34,12 @@ const client = Deno.createHttpClient({
 
 const result = await fetch("http://vsock/stuff", {
   client,
-  body: JSON.stringify({ accessKeyId, sessionToken, secretAccessKey }),
+  body: JSON.stringify({
+    accessKeyId,
+    sessionToken,
+    secretAccessKey,
+    kmsKeyId: "aff6d1c1-bc54-4a1c-b458-72e044598cc1",
+  }),
   method: "POST",
 });
 
