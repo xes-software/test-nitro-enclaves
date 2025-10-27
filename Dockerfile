@@ -1,7 +1,7 @@
 FROM denoland/deno:alpine-2.5.2 AS builder
 
 COPY ./enclave .
-RUN deno install
+RUN deno install --entrypoint server.ts
 
 COPY aws-nitro-enclaves-sdk-c/bin/kmstool-enclave-cli/kmstool_enclave_cli /usr/local/bin/
 COPY aws-nitro-enclaves-sdk-c/bin/kmstool-enclave-cli/libnsm.so /usr/lib/
