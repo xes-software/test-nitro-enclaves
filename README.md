@@ -60,6 +60,7 @@ Close the instance and start again.
 # Build KMS Tool Enclave CLI
 
 ```bash
+cd ~/
 cd test-nitro-enclaves/aws-nitro-enclaves-sdk-c/bin/kmstool-enclave-cli/
 ./build.sh
 cd ~/

@@ -1,5 +1,5 @@
 FROM denoland/deno:alpine-2.5.2 AS builder
-COPY ./serve.ts .
+COPY ./server.ts .
 RUN deno compile --unstable-vsock -A -o server server.ts
 
 FROM alpine:3.22.2
