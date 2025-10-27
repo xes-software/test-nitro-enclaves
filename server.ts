@@ -1,16 +1,15 @@
-import * as Crypto from "npm:@cardano-sdk/crypto@0.4.4";
+import { Ed25519PrivateKey, ready } from "npm:@cardano-sdk/crypto@0.4.4";
 
-await Crypto.ready();
+await ready();
 
 try {
-  Deno.serve({ transport: "vsock", cid: -1, port: 3000 }, async (req, info) => {
-    console.log("Logging cid:", info.remoteAddr.cid);
-
-    const { secretAccessKey, sessionToken, accessKeyId } =
+  Deno.serve({ transport: "vsock", cid: -1, port: 3000 }, async (req) => {
+    const { secretAccessKey, sessionToken, accessKeyId, kmsKeyId } =
       (await req.json()) as {
         accessKeyId: string;
         sessionToken: string;
         secretAccessKey: string;
+        kmsKeyId: string;
       };
 
     const command = new Deno.Command("kmstool_enclave_cli", {
@@ -45,7 +44,7 @@ try {
         "--proxy-port",
         "8000",
         "--key-id",
-        "164ea6b3-0d6f-4386-9529-ffa1a978176c", // exchange with key id
+        kmsKeyId,
         "--key-spec",
         "AES-256",
       ],
@@ -62,12 +61,12 @@ try {
     console.log("STDOUT:", new TextDecoder().decode(stdout));
     console.log("STDERR:", new TextDecoder().decode(stderr));
 
-    const privateKey =
-      Crypto.Ed25519PrivateKey.fromNormalBytes(randomBytesArray);
+    const privateKey = Ed25519PrivateKey.fromNormalBytes(randomBytesArray);
     console.log("Private Key after conversion:", privateKey.bytes().toBase64());
     console.log("Private Key before conversion:", randomBytes);
 
     const publicKey = privateKey.toPublic();
+    const publicKeyHashHex = publicKey.hash().hex();
     console.log("Public key hash hex:", publicKey.hash().hex());
     console.log("Public key .hex():", publicKey.hex());
 
@@ -85,6 +84,25 @@ try {
     console.log("GEN Cipher:", genCipher);
     console.log("GEN Plaintext:", genPlaintext);
     const cipherText = genCipher.split(":")[1].trim();
+    const plaintext = genPlaintext.split(":")[1].trim();
+
+    const cryptoKey = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(plaintext),
+      { name: "AES-GCM" },
+      true,
+      ["encrypt", "decrypt"]
+    );
+
+    const encryptedPrivateKey = await crypto.subtle.encrypt(
+      "AES-GCM",
+      cryptoKey,
+      randomBytesArray
+    );
+
+    const encryptedPrivateKeyBase64 = new TextDecoder().decode(
+      encryptedPrivateKey
+    );
 
     const decryptDataKeyCommand = new Deno.Command("kmstool_enclave_cli", {
       args: [
@@ -116,9 +134,13 @@ try {
     const decryptPlaintext = decryptOutput.split(":")[1];
     console.log(`decrypt Plaintext: [${decryptPlaintext}`);
 
-    return new Response(
-      `Generated plaintext: [${genPlaintext}]; Decrypted plaintext: [${decryptPlaintext}]`
-    );
+    const result = {
+      encryptedPrivateKeyBase64,
+      publicKeyHashHex,
+      cipherText,
+    };
+
+    return new Response(JSON.stringify(result));
   });
 } catch (e) {
   console.log(e);

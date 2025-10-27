@@ -38,4 +38,4 @@ const result = await fetch("http://vsock/stuff", {
   method: "POST",
 });
 
-console.log("Logging result:", await result.text());
+console.log("Logging result:", await result.json());
