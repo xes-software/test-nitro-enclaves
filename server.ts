@@ -1,8 +1,7 @@
 import { Ed25519PrivateKey, ready } from "npm:@cardano-sdk/crypto@0.4.4";
 
-await ready();
-
 try {
+  await ready();
   Deno.serve({ transport: "vsock", cid: -1, port: 3000 }, async (req) => {
     const { secretAccessKey, sessionToken, accessKeyId, kmsKeyId } =
       (await req.json()) as {
