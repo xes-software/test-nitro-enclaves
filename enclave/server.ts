@@ -138,7 +138,7 @@ try {
       encryptedPrivateKeyBase64,
       publicKeyHashHex,
       cipherText,
-      iv,
+      ivBase64: encodeBase64(iv),
     };
 
     return new Response(JSON.stringify(result));
