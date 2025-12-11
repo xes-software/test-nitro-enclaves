@@ -87,7 +87,7 @@ try {
 
     const cryptoKey = await crypto.subtle.importKey(
       "raw",
-      new TextEncoder().encode(plaintext),
+      Uint8Array.fromBase64(plaintext),
       { name: "AES-GCM" },
       true,
       ["encrypt", "decrypt"]
