@@ -1,4 +1,5 @@
 import { Ed25519PrivateKey, ready } from "npm:@cardano-sdk/crypto@0.4.4";
+import { encodeBase64, decodeBase64 } from "jsr:@std/encoding/base64";
 
 try {
   await ready();
@@ -53,7 +54,7 @@ try {
     console.log("Exit code:", code);
     const output = new TextDecoder().decode(stdout);
     const randomBytes = output.split(":")[1].trim();
-    const randomBytesArray = Uint8Array.fromBase64(randomBytes);
+    const randomBytesArray = decodeBase64(randomBytes);
 
     console.log("Logging output:", output);
     console.log(`Logging randomBytes:[${randomBytes}]`);
@@ -101,9 +102,7 @@ try {
       randomBytesArray
     );
 
-    const encryptedPrivateKeyBase64 = new TextDecoder().decode(
-      encryptedPrivateKey
-    );
+    const encryptedPrivateKeyBase64 = encodeBase64(encryptedPrivateKey);
 
     const decryptDataKeyCommand = new Deno.Command("kmstool_enclave_cli", {
       args: [
