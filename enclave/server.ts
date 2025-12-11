@@ -93,8 +93,10 @@ try {
       ["encrypt", "decrypt"]
     );
 
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+
     const encryptedPrivateKey = await crypto.subtle.encrypt(
-      "AES-GCM",
+      { name: "AES-GCM", iv },
       cryptoKey,
       randomBytesArray
     );
@@ -137,6 +139,7 @@ try {
       encryptedPrivateKeyBase64,
       publicKeyHashHex,
       cipherText,
+      iv,
     };
 
     return new Response(JSON.stringify(result));
