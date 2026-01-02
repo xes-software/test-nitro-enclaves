@@ -1,0 +1,7 @@
+{
+  "nodeModulesDir": "auto",
+  "imports": {
+    "@cardano-sdk/crypto": "npm:@cardano-sdk/crypto@0.4.4",
+    "@std/encoding": "jsr:@std/encoding@1.0.10/base64"
+  }
+}

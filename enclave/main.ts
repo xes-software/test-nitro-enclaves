@@ -1,5 +1,5 @@
-import { Ed25519PrivateKey, ready } from "npm:@cardano-sdk/crypto@0.4.4";
-import { encodeBase64, decodeBase64 } from "jsr:@std/encoding@1.0.10/base64";
+import { Ed25519PrivateKey, ready } from "@cardano-sdk/crypto";
+import { encodeBase64, decodeBase64 } from "@std/encoding";
 
 try {
   await ready();

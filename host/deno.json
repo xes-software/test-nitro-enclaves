@@ -1,0 +1,6 @@
+{
+  "nodeModulesDir": "auto",
+  "imports": {
+    "@aws-sdk/client-sts": "npm:@aws-sdk/client-sts@3.908.0"
+  }
+}
